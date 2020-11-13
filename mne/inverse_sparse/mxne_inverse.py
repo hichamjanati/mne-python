@@ -288,7 +288,7 @@ def make_stc_from_dipoles(dipoles, src, verbose=None):
 def mixed_norm(evoked, forward, noise_cov, alpha, loose='auto', depth=0.8,
                maxit=3000, tol=1e-4, active_set_size=10,
                debias=True, time_pca=True, weights=None, weights_min=0.,
-               solver='auto', n_mxne_iter=1, return_residual=False,
+               solver='auto', n_mxne_iter=1, return_log=False,
                return_as_dipoles=False, dgap_freq=10, rank=None, pick_ori=None,
                verbose=None):
     """Mixed-norm estimate (MxNE) and iterative reweighted MxNE (irMxNE).
@@ -352,9 +352,9 @@ def mixed_norm(evoked, forward, noise_cov, alpha, loose='auto', depth=0.8,
     -------
     stc : SourceEstimate | list of SourceEstimate
         Source time courses for each evoked data passed as input.
-    residual : instance of Evoked
-        The residual a.k.a. data not explained by the sources.
-        Only returned if return_residual is True.
+    log : dict
+        residuals, goodness of fit, convergence info
+        Only returned if return_log is True.
 
     See Also
     --------
@@ -471,7 +471,7 @@ def mixed_norm(evoked, forward, noise_cov, alpha, loose='auto', depth=0.8,
         outs.append(out)
         cnt += len(e.times)
 
-        if return_residual:
+        if return_log:
             residual.append(_compute_residual(forward, e, Xe, active_set,
                                               gain_info))
 
@@ -480,13 +480,17 @@ def mixed_norm(evoked, forward, noise_cov, alpha, loose='auto', depth=0.8,
 
     if len(outs) == 1:
         out = outs[0]
-        if return_residual:
+        if return_log:
             residual = residual[0]
     else:
         out = outs
 
-    if return_residual:
-        out = out, residual
+    if return_log:
+        res = M - M_estimate
+        gof = 1 - (res ** 2).sum() / (M ** 2).sum()
+        gof *= 100
+        _log = dict(residual=residual, gof=gof)
+        out = out, _log
 
     return out
 
