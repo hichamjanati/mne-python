@@ -352,9 +352,13 @@ def mixed_norm(evoked, forward, noise_cov, alpha, loose='auto', depth=0.8,
     -------
     stc : SourceEstimate | list of SourceEstimate
         Source time courses for each evoked data passed as input.
-    log : dict
-        residuals, goodness of fit, convergence info
-        Only returned if return_log is True.
+    log : dict | residuals and goodness of fit information dictionary
+        - log["residuals"]: instanced of mne.Evoked
+            The residual a.k.a. data not explained by the sources.
+        - log["gof"]: float | Goodness of fit.
+            Percentage of variance of the data explained by the returned
+            source estimates.
+        returned only if `return_log` is True.
 
     See Also
     --------
